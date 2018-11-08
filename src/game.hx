@@ -7,6 +7,8 @@ class Game extends hxd.App {
     var ballxdirection = 1;
     var ballydirection = 1;
     var maxWidth = 700;
+    var blocks = [];
+
     override function init() {
         paddle = new h2d.Graphics(s2d);
         paddle.beginFill(0xffffff);
@@ -15,7 +17,49 @@ class Game extends hxd.App {
 
         ball = new h2d.Graphics(s2d);
         ball.beginFill(0xffffff);
-        ball.drawCircle(50,50, 30);
+        ball.drawCircle(15, 15, 30);
+        resetBall();
+
+        for(i in 0...7){
+            var row = [];
+            for (j in 0...5){
+                var block = new h2d.Graphics(s2d);
+                block.beginFill(0xffffff);
+                var x = 10+20+(i*100);
+                var y = 10+20+(j*40);
+                block.drawRect(0, 0, 70, 30);
+                block.endFill();
+                block.x = x;
+                block.y = y;
+                trace(block.x, block.y, x, y);
+                row[j] = block;
+            }
+            blocks[i] = row;
+        }
+    }
+
+    function resetBall(){
+        ball.x = 350;
+        ball.y = 350;
+    }
+
+    function detectBlockCollide(ballCol){
+        for(row in blocks){
+            var i = 0;
+            for(block in row){
+                var blockCol = new h2d.col.Bounds();
+                //trace(block.x, block.y);
+                blockCol.set(block.x, block.y, 70, 30);
+                if(ballCol.collideBounds(blockCol)){
+                    
+                    trace("HIT!");
+                    block.clear();
+                    row.remove(block);
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     override function update(dt:Float) {
@@ -32,6 +76,10 @@ class Game extends hxd.App {
         paddleCol.set(paddle.x, 900, paddleSize, 50.0);
         var ballCol = new h2d.col.Circle(ball.x+(ballxdirection+10), ball.y+(ballydirection+10), 30.0);
         
+        if(detectBlockCollide(ballCol)){
+            ballydirection *= -1;
+        }
+
         if(ballCol.collideBounds(paddleCol)){
             ballxdirection *= -1;
             ballydirection *= -1;
@@ -47,7 +95,7 @@ class Game extends hxd.App {
             }
             if(ballydirection == 1){
                 if(ball.y + 10 > 900){
-                    ballydirection = -1;
+                    resetBall();
                 }
             } else {
                 if(ball.y - 10 < 0){
@@ -55,8 +103,8 @@ class Game extends hxd.App {
                 }
             }
         }
-        ball.x += (10 * ballxdirection);
-        ball.y += (10 * ballydirection);
+        ball.x += (8 * ballxdirection);
+        ball.y += (8 * ballydirection);
         
     }
 
